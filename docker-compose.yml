@@ -18,3 +18,17 @@ services:
     volumes:
       - ./data/chroma:/chroma/chroma
     restart: always
+
+  ai-brain:
+    build: ./ai-brain
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8001:8000" # Expose AI Brain on 8001 to avoid conflict with Chroma
+    depends_on:
+      - chromadb
+    environment:
+      - CHROMADB_HOST=chromadb
+      - CHROMADB_PORT=8000
+    volumes:
+      - ./ai-brain:/app
+    restart: always
