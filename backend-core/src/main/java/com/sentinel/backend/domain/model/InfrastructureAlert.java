@@ -8,5 +8,7 @@ public record InfrastructureAlert(
     String errorMessage,
     String severity,
     String status,
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+    String aiAnalysis,
+    String suggestedAction
 ) {}

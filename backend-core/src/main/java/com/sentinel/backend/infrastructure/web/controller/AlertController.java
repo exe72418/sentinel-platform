@@ -25,7 +25,9 @@ public class AlertController {
             request.errorMessage(),
             request.severity(),
             request.status(),
-            null // Will be set by service if missing
+            null,
+            null,
+            null
         );
 
         InfrastructureAlert savedAlert = createAlertUseCase.createAlert(alert);
