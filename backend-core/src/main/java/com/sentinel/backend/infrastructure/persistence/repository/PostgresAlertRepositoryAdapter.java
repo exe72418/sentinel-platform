@@ -27,6 +27,8 @@ public class PostgresAlertRepositoryAdapter implements AlertRepositoryPort {
                 .severity(alert.severity())
                 .status(alert.status())
                 .createdAt(alert.createdAt())
+                .aiAnalysis(alert.aiAnalysis())
+                .suggestedAction(alert.suggestedAction())
                 .build();
     }
 
@@ -37,7 +39,9 @@ public class PostgresAlertRepositoryAdapter implements AlertRepositoryPort {
                 entity.getErrorMessage(),
                 entity.getSeverity(),
                 entity.getStatus(),
-                entity.getCreatedAt()
+                entity.getCreatedAt(),
+                entity.getAiAnalysis(),
+                entity.getSuggestedAction()
         );
     }
 }

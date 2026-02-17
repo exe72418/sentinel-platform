@@ -25,4 +25,10 @@ public class AlertEntity {
     private String severity;
     private String status;
     private LocalDateTime createdAt;
+
+    @Column(columnDefinition = "TEXT")
+    private String aiAnalysis;
+
+    @Column(columnDefinition = "TEXT")
+    private String suggestedAction;
 }
