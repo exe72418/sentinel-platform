@@ -4,7 +4,11 @@ import com.sentinel.backend.domain.model.InfrastructureAlert;
 import com.sentinel.backend.domain.ports.out.AlertRepositoryPort;
 import com.sentinel.backend.infrastructure.persistence.entity.AlertEntity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -17,6 +21,14 @@ public class PostgresAlertRepositoryAdapter implements AlertRepositoryPort {
         AlertEntity entity = mapToEntity(alert);
         AlertEntity savedEntity = springDataAlertRepository.save(entity);
         return mapToDomain(savedEntity);
+    }
+
+    @Override
+    public List<InfrastructureAlert> findAll() {
+        return springDataAlertRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"))
+                .stream()
+                .map(this::mapToDomain)
+                .collect(Collectors.toList());
     }
 
     private AlertEntity mapToEntity(InfrastructureAlert alert) {

@@ -23,7 +23,7 @@ services:
     build: ./ai-brain
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000
     ports:
-      - "8001:8000" # Expose AI Brain on 8001 to avoid conflict with Chroma
+      - "8001:8000"
     depends_on:
       - chromadb
     environment:
@@ -31,4 +31,28 @@ services:
       - CHROMADB_PORT=8000
     volumes:
       - ./ai-brain:/app
+    restart: always
+
+  backend-core:
+    build: ./backend-core
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - ai-brain
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/sentinel_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin
+      AI_SERVICE_URL: http://ai-brain:8000/analyze
+    restart: always
+
+  frontend-dashboard:
+    build: ./frontend-dashboard
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend-core
+    environment:
+      - VITE_API_URL=http://backend-core:8080 # For build/runtime config if needed
     restart: always
