@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Value;
 
 @Component
 @RequiredArgsConstructor
@@ -15,7 +16,8 @@ public class AiBrainAdapter implements AnalyzeAlertPort {
 
     private final RestTemplate restTemplate;
     // In Docker network, service name 'ai-brain' resolves to container IP. Port 8000 is internal container port.
-    private static final String AI_SERVICE_URL = "http://ai-brain:8000/analyze";
+    @Value("${ai.service.url}")
+    private String AI_SERVICE_URL;
 
     @Override
     public InfrastructureAlert analyze(InfrastructureAlert alert) {

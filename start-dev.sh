@@ -1,14 +1,22 @@
 #!/bin/bash
 
-# 1. Start Infrastructure (Databases only) in background
-echo "🚀 Starting Infrastructure (Postgres, ChromaDB)..."
+# 1. Levantar Infraestructura (Base de datos y Vector Store)
+echo "🚀 Levantando Docker Containers..."
 docker compose up -d postgres chromadb
 
-# 2. Open 3 Terminal Tabs for Microservices
-echo "🖥️  Opening Development Terminals..."
+# Esperar unos segundos para asegurar que la DB esté lista
+sleep 3
 
-gnome-terminal --tab --title="Backend Java" -- bash -c "cd backend-core && mvn spring-boot:run; exec bash" \
-               --tab --title="AI Brain" -- bash -c "cd ai-brain && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && uvicorn src.main:app --reload --port 8001; exec bash" \
-               --tab --title="Frontend" -- bash -c "cd frontend-dashboard && npm install && npm run dev; exec bash"
+# 2. Abrir Ventana 1: Backend Java
+echo "☕ Iniciando Backend Java..."
+gnome-terminal --title="Backend Java" -- bash -c "cd backend-core && mvn spring-boot:run; exec bash" &
 
-echo "✅ Development environment initialized!"
+# 3. Abrir Ventana 2: AI Brain
+echo "🧠 Iniciando AI Brain..."
+gnome-terminal --title="AI Brain" -- bash -c "cd ai-brain && source venv/bin/activate && uvicorn src.main:app --reload --port 8001; exec bash" &
+
+# 4. Abrir Ventana 3: Frontend React
+echo "⚛️ Iniciando Frontend..."
+gnome-terminal --title="Frontend Dashboard" -- bash -c "cd frontend-dashboard && npm run dev; exec bash" &
+
+echo "✅ Todo corriendo en 3 ventanas separadas."

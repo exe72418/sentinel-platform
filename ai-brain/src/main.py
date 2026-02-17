@@ -12,7 +12,7 @@ app = FastAPI(title="Sentinel AI Brain")
 
 # Initialize ChromaDB Client
 try:
-    chroma_client = chromadb.HttpClient(host='chromadb', port=8000)
+    chroma_client = chromadb.HttpClient(host='localhost', port=8000)
     collection = chroma_client.get_or_create_collection(name="k8s_solutions")
     logger.info("Connected to ChromaDB and retrieved collection 'k8s_solutions'.")
 except Exception as e:
