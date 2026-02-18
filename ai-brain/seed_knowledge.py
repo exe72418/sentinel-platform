@@ -1,5 +1,5 @@
 import chromadb
-from chromadb.config import Settings
+import uuid
 import logging
 
 # Configure logging
@@ -8,61 +8,47 @@ logger = logging.getLogger(__name__)
 
 def seed_knowledge_base():
     try:
-        # Connect to ChromaDB (running locally via Docker on port 8000)
-        chroma_client = chromadb.HttpClient(host='localhost', port=8000)
-        logger.info("Connected to ChromaDB")
+        # Use PersistentClient at ./chroma_db as requested
+        chroma_client = chromadb.PersistentClient(path="./chroma_db")
+        logger.info("Connected to PersistentClient at ./chroma_db")
 
-        # Get or create collection
         collection_name = "k8s_solutions"
 
-        # Reset: Delete existing collection if it exists
+        # Try to delete existing collection to avoid duplicates
         try:
             chroma_client.delete_collection(name=collection_name)
             logger.info(f"Deleted existing collection '{collection_name}'")
-        except Exception:
-            pass # Collection might not exist
+        except ValueError:
+            logger.info(f"Collection '{collection_name}' not found, skipping delete.")
 
-        collection = chroma_client.get_or_create_collection(name=collection_name)
+        # Create fresh collection
+        collection = chroma_client.create_collection(name=collection_name)
         logger.info(f"Created fresh collection '{collection_name}'")
 
         # Knowledge Base Data
-        errors = [
-            "CrashLoopBackOff",
-            "OOMKilled",
-            "ImagePullBackOff",
-            "502 Bad Gateway",
-            "PVC Pending",
-            "NodeNotReady",
-            "CreateContainerConfigError",
-            "ErrImagePull"
+        cases = [
+            {"error": "CrashLoopBackOff", "solution": "Revisar logs con kubectl logs y liveness probes."},
+            {"error": "OOMKilled", "solution": "Aumentar resources.limits.memory en el deployment."},
+            {"error": "ImagePullBackOff", "solution": "Verificar credenciales del registry y nombre de imagen."},
+            {"error": "502 Bad Gateway", "solution": "Verificar servicio upstream y puerto del container."},
+            {"error": "PVC Pending", "solution": "Verificar StorageClass y capacidad del nodo."}
         ]
 
-        solutions = [
-            "Revisar logs con 'kubectl logs', verificar configuración de liveness/readiness probes, y asegurar que el comando de inicio sea correcto.",
-            "El contenedor excedió el límite de memoria. Aumentar 'resources.limits.memory' en el Deployment o optimizar el consumo de la aplicación.",
-            "Verificar el nombre de la imagen, etiquetas (tags), y asegurar que las credenciales del registry (ImagePullSecrets) sean correctas.",
-            "Verificar que los Pods del servicio upstream estén en estado Running y pasando sus health checks. Revisar configuración del Ingress/Service.",
-            "Chequear que exista la StorageClass solicitada, que haya capacidad disponible en el backend de almacenamiento, y que el modo de acceso sea compatible.",
-            "Verificar estado del kubelet en el nodo, espacio en disco, y conectividad de red. Reiniciar el nodo si es necesario.",
-            "Revisar configuración de ConfigMaps o Secrets montados. Es posible que falte una clave requerida o el archivo no exista.",
-            "Error al descargar la imagen. Verificar conectividad de red del nodo hacia el registry y que la imagen exista."
-        ]
+        # Insert data
+        for case in cases:
+            unique_id = str(uuid.uuid4())
+            collection.add(
+                documents=[case["error"]], # Embedding will be generated based on error description
+                metadatas=[{"solution": case["solution"]}],
+                ids=[unique_id]
+            )
+            logger.info(f"Inserted: {case['error']}")
 
-        ids = [str(i) for i in range(1, len(errors) + 1)]
-        metadatas = [{"error_type": error, "solution": solution} for error, solution in zip(errors, solutions)]
-        documents = [f"{error}: {solution}" for error, solution in zip(errors, solutions)]
-
-        # Add data to collection
-        collection.add(
-            documents=documents,
-            metadatas=metadatas,
-            ids=ids
-        )
-
-        logger.info(f"Successfully seeded {len(documents)} knowledge entries into ChromaDB.")
+        print("\n✅ Knowledge base seeded successfully!")
 
     except Exception as e:
         logger.error(f"Failed to seed knowledge base: {e}")
+        print("\n❌ Seeding failed.")
 
 if __name__ == "__main__":
     seed_knowledge_base()
